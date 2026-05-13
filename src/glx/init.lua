@@ -57,15 +57,19 @@ do
 	local types = {
 		glXChooseFBConfig = "GLXFBConfig*(*)(XDisplay*, int, const int*, int*)",
 		glXCreateContextAttribsARB = "GLXContext(*)(XDisplay*, GLXFBConfig*, GLXContext, int, const int*)",
+		glXSwapIntervalEXT = "void(*)(XDisplay*, GLXDrawable, int)"
 	}
 
 	---@class x11.glx.FnsExt
 	---@field glXChooseFBConfig fun(display: x11.ffi.Display, screen: number, attributes: number[], nelements: ffi.cdata*): x11.glx.ffi.FBConfig?
 	---@field glXCreateContextAttribsARB fun(display: x11.ffi.Display, config: x11.glx.ffi.FBConfig, share_context: ffi.cdata*?, direct: number, attrib_list: number[]): ffi.cdata*
+	---@field glXSwapIntervalEXT fun(display: x11.ffi.Display, drawable: integer, interval: integer)
 	local C = {}
 	for name, type in pairs(types) do
 		C[name] = ffi.cast(type, glx.getProcAddress(name))
 	end
+
+	glx.swapIntervalEXT = C.glXSwapIntervalEXT
 
 	---@param display x11.ffi.Display
 	---@param screen number

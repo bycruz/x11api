@@ -3,6 +3,7 @@ typedef unsigned long XWindow;
 
 typedef void *GLXContext;
 typedef void *GLXFBConfig;
+typedef unsigned long GLXDrawable;
 
 int glXMakeCurrent(XDisplay, XWindow, GLXContext);
 void glXSwapBuffers(XDisplay, XWindow);
@@ -13,9 +14,10 @@ int glXMakeContextCurrent(XDisplay, XWindow, XWindow, GLXContext);
 GLXContext glXGetCurrentContext();
 XDisplay glXGetCurrentDisplay();
 XWindow glXGetCurrentDrawable();
-void glXQueryDrawable(XDisplay dpy, XWindow draw, int attribute,
-                      unsigned int *value);
+void glXQueryDrawable(XDisplay dpy, XWindow draw, int attribute, unsigned int *value);
 
 /* Misc */
 const char *glXQueryExtensionsString(XDisplay dpy, int screen);
 void *glXGetProcAddress(const unsigned char *procname);
+
+void glXSwapIntervalEXT(XDisplay dpy, GLXDrawable drawable, int interval);
