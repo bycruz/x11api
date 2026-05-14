@@ -245,3 +245,4 @@ XCursor XCreatePixmapCursor(XDisplay display, XPixmap source, XPixmap mask,
 XPixmap XCreatePixmap(XDisplay display, XWindow d, unsigned int width,
                       unsigned int height, unsigned int depth);
 void XFreePixmap(XDisplay display, XPixmap pixmap);
+void XSetWindowBackgroundPixmap(XDisplay display, XWindow w, XPixmap background_pixmap);

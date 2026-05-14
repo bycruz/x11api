@@ -45,6 +45,7 @@ ffi.cdef([[#embed "x11/ffi/ffidefs.h"]])
 ---@field XCreatePixmapCursor fun(display: x11.ffi.Display, source: number, mask: number, foreground_color: x11.ffi.Color, background_color: x11.ffi.Color, x: number, y: number): number
 ---@field XCreatePixmap fun(display: x11.ffi.Display, d: number, width: number, height: number, depth: number): number
 ---@field XFreePixmap fun(display: x11.ffi.Display, pixmap: number)
+---@field XSetWindowBackgroundPixmap fun(display: x11.ffi.Display, w: number, background_pixmap: number)
 local C = ffi.load("libX11.so.6")
 
 ---@class x11: x11.Enums
@@ -109,6 +110,7 @@ x11.freeEventData = C.XFreeEventData
 x11.createPixmapCursor = C.XCreatePixmapCursor
 x11.createPixmap = C.XCreatePixmap
 x11.freePixmap = C.XFreePixmap
+x11.setWindowBackgroundPixmap = C.XSetWindowBackgroundPixmap
 
 ---@param display x11.ffi.Display
 ---@param first_keycode number
@@ -125,6 +127,7 @@ function x11.getKeyboardMapping(display, first_keycode, keycode_count)
 	C.XFree(syms)
 	return result, n
 end
+
 x11.resizeWindow = C.XResizeWindow
 x11.moveWindow = C.XMoveWindow
 x11.unmapWindow = C.XUnmapWindow
@@ -142,7 +145,6 @@ function x11.fetchName(display, window)
 	C.XFree(ptr[0])
 	return name
 end
-
 
 ---@param display x11.ffi.Display
 ---@return string
