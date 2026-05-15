@@ -48,12 +48,23 @@ ffi.cdef([[#embed "x11/ffi/ffidefs.h"]])
 ---@field XSetWindowBackgroundPixmap fun(display: x11.ffi.Display, w: number, background_pixmap: number)
 local C = ffi.load("libX11.so.6")
 
+-- XSync extension (libXext.so.6)
+---@class x11.FnsXSync
+---@field XSyncInitialize fun(display: x11.ffi.Display, major: ffi.cdata*, minor: ffi.cdata*, error: ffi.cdata*): number
+---@field XSyncCreateCounter fun(display: x11.ffi.Display, initial_value: x11.ffi.SyncValue): number
+---@field XSyncSetCounter fun(display: x11.ffi.Display, counter: number, value: x11.ffi.SyncValue)
+---@field XSyncMaxValue fun(): x11.ffi.SyncValue
+---@field XSyncMinValue fun(): x11.ffi.SyncValue
+local XExt = ffi.load("libXext.so.6")
+
 ---@class x11: x11.Enums
 ---@field Atom fun(): x11.ffi.Atom
 ---@field AtomArray fun(count: number): x11.ffi.Atom[]
 ---@field WindowAttributes fun(): x11.ffi.WindowAttributes
 ---@field Event fun(): x11.ffi.Event
 ---@field Color fun(): x11.ffi.Color
+---@field SyncValue fun(): x11.ffi.SyncValue
+---@field SyncValueArray fun(count: number): x11.ffi.SyncValue[]
 ---@field KeySym fun(): number[]
 local x11 = {}
 
@@ -77,6 +88,7 @@ defType("Atom")
 defType("WindowAttributes")
 defType("Event")
 defType("Color")
+defType("SyncValue")
 
 x11.KeySym = ffi.typeof("XKeySym[1]")
 
@@ -111,6 +123,56 @@ x11.createPixmapCursor = C.XCreatePixmapCursor
 x11.createPixmap = C.XCreatePixmap
 x11.freePixmap = C.XFreePixmap
 x11.setWindowBackgroundPixmap = C.XSetWindowBackgroundPixmap
+
+---@param display x11.ffi.Display
+---@return number? major, number? minor, number? error_base
+function x11.syncInitialize(display)
+	local major = ffi.new("int[1]")
+	local minor = ffi.new("int[1]")
+	local error = ffi.new("int[1]")
+	local status = XExt.XSyncInitialize(display, major, minor, error)
+	if status == 0 then
+		return nil
+	end
+	return major[0], minor[0], error[0]
+end
+
+---@param display x11.ffi.Display
+---@param initial_value integer
+---@return number
+function x11.syncCreateCounter(display, initial_value)
+	local val = x11.SyncValue()
+	val.lo = initial_value
+	val.hi = (initial_value < 0) and -1 or 0
+	return XExt.XSyncCreateCounter(display, val)
+end
+
+---@param display x11.ffi.Display
+---@param counter number
+---@param value x11.ffi.SyncValue
+function x11.syncSetCounter(display, counter, value)
+	XExt.XSyncSetCounter(display, counter, value)
+end
+
+---@param lo integer
+---@param hi integer
+---@return x11.ffi.SyncValue
+function x11.syncIntsToValue(lo, hi)
+	local val = x11.SyncValue()
+	val.lo = lo
+	val.hi = hi
+	return val
+end
+
+---@return x11.ffi.SyncValue
+function x11.syncMaxValue()
+	return XExt.XSyncMaxValue()
+end
+
+---@return x11.ffi.SyncValue
+function x11.syncMinValue()
+	return XExt.XSyncMinValue()
+end
 
 ---@param display x11.ffi.Display
 ---@param first_keycode number

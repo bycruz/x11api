@@ -32,3 +32,7 @@
 ---@field evtype number
 ---@field cookie number
 ---@field data ffi.cdata*
+
+---@class x11.ffi.SyncValue: ffi.cdata*
+---@field hi integer
+---@field lo integer

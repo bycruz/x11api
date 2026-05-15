@@ -9,6 +9,12 @@ typedef void *XScreen;
 typedef unsigned long XTime;
 typedef unsigned long XCursor;
 typedef unsigned long XPixmap;
+typedef unsigned long XSyncCounter;
+
+typedef struct {
+    long hi;
+    unsigned long lo;
+} XSyncValue;
 
 typedef struct {
   unsigned long pixel;
@@ -246,3 +252,11 @@ XPixmap XCreatePixmap(XDisplay display, XWindow d, unsigned int width,
                       unsigned int height, unsigned int depth);
 void XFreePixmap(XDisplay display, XPixmap pixmap);
 void XSetWindowBackgroundPixmap(XDisplay display, XWindow w, XPixmap background_pixmap);
+
+/* XSync extension (libXext.so.6) */
+int XSyncInitialize(XDisplay display, int *major_version_return,
+                    int *minor_version_return, int *error_base_return);
+XSyncCounter XSyncCreateCounter(XDisplay display, XSyncValue initial_value);
+void XSyncSetCounter(XDisplay display, XSyncCounter counter, XSyncValue value);
+XSyncValue XSyncMaxValue(void);
+XSyncValue XSyncMinValue(void);
