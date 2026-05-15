@@ -14,6 +14,24 @@ typedef void *XGC;
 typedef unsigned long XFont;
 
 typedef struct {
+    XPixmap background_pixmap;
+    unsigned long background_pixel;
+    XPixmap border_pixmap;
+    unsigned long border_pixel;
+    int bit_gravity;
+    int win_gravity;
+    int backing_store;
+    unsigned long backing_planes;
+    unsigned long backing_pixel;
+    XBool save_under;
+    long event_mask;
+    long do_not_propagate_mask;
+    XBool override_redirect;
+    XColormap colormap;
+    XCursor cursor;
+} XSetWindowAttributes;
+
+typedef struct {
     short x, y;
 } XPoint;
 
@@ -248,6 +266,12 @@ XWindow XCreateSimpleWindow(XDisplay display, XWindow parent, int x, int y,
                             unsigned int width, unsigned int height,
                             unsigned int border_width, unsigned long border,
                             unsigned long background);
+XWindow XCreateWindow(XDisplay display, XWindow parent, int x, int y,
+                      unsigned int width, unsigned int height,
+                      unsigned int border_width, int depth,
+                      unsigned int class, XVisual visual,
+                      unsigned long valuemask,
+                      XSetWindowAttributes *attributes);
 void XMapWindow(XDisplay display, XWindow w);
 XAtom XInternAtom(XDisplay display, const char *atom_name,
                   XBool only_if_exists);

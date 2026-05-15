@@ -26,6 +26,23 @@
 ---@field flags number
 ---@field pad number
 
+---@class x11.ffi.SetWindowAttributes: ffi.cdata*
+---@field background_pixmap number
+---@field background_pixel number
+---@field border_pixmap number
+---@field border_pixel number
+---@field bit_gravity number
+---@field win_gravity number
+---@field backing_store number
+---@field backing_planes number
+---@field backing_pixel number
+---@field save_under number
+---@field event_mask number
+---@field do_not_propagate_mask number
+---@field override_redirect number
+---@field colormap number
+---@field cursor number
+
 ---@class x11.ffi.GenericEventCookie: ffi.cdata*
 ---@field type number
 ---@field extension number

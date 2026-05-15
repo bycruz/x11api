@@ -21,6 +21,13 @@ x11.EventType = {
 	GenericEvent = 35
 }
 
+---@enum x11.WindowClass
+x11.WindowClass = {
+	CopyFromParent = 0,
+	InputOutput = 1,
+	InputOnly = 2
+}
+
 x11.False = 0
 x11.True = 1
 

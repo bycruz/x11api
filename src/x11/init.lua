@@ -8,6 +8,7 @@ ffi.cdef([[#embed "x11/ffi/ffidefs.h"]])
 ---@field XDestroyWindow fun(display: x11.ffi.Display, window: number)
 ---@field XDefaultRootWindow fun(display: x11.ffi.Display): number
 ---@field XCreateSimpleWindow fun(display: x11.ffi.Display, parent: number, x: number, y: number, width: number, height: number, border_width: number, border: number, background: number): number
+---@field XCreateWindow fun(display: x11.ffi.Display, parent: number, x: number, y: number, width: number, height: number, border_width: number, depth: number, class: number, visual: ffi.cdata*, valuemask: number, attributes: x11.ffi.SetWindowAttributes): number
 ---@field XMapWindow fun(display: x11.ffi.Display, w: number)
 ---@field XInternAtom fun(display: x11.ffi.Display, atom_name: string, only_if_exists: number): number
 ---@field XSetWMProtocols fun(display: x11.ffi.Display, window: number, protocols: number[], count: number): number
@@ -119,10 +120,16 @@ local XExt = ffi.load("libXext.so.6")
 ---@field Atom fun(): x11.ffi.Atom
 ---@field AtomArray fun(count: number): x11.ffi.Atom[]
 ---@field WindowAttributes fun(): x11.ffi.WindowAttributes
+---@field WindowAttributesArray fun(count: number): x11.ffi.WindowAttributes[]
 ---@field Event fun(): x11.ffi.Event
 ---@field Color fun(): x11.ffi.Color
+---@field ColorArray fun(count: number): x11.ffi.Color[]
+---@field SetWindowAttributes fun(): x11.ffi.SetWindowAttributes
+---@field SetWindowAttributesArray fun(count: number): x11.ffi.SetWindowAttributes[]
 ---@field SyncValue fun(): x11.ffi.SyncValue
 ---@field SyncValueArray fun(count: number): x11.ffi.SyncValue[]
+---@field GC fun(): x11.ffi.GC
+---@field GCArray fun(count: number): x11.ffi.GC[]
 ---@field KeySym fun(): number[]
 local x11 = {}
 
@@ -146,6 +153,7 @@ defType("Atom")
 defType("WindowAttributes")
 defType("Event")
 defType("Color")
+defType("SetWindowAttributes")
 defType("SyncValue")
 defType("GC")
 
@@ -156,6 +164,7 @@ x11.closeDisplay = C.XCloseDisplay
 x11.destroyWindow = C.XDestroyWindow
 x11.defaultRootWindow = C.XDefaultRootWindow
 x11.createSimpleWindow = C.XCreateSimpleWindow
+x11.createWindow = C.XCreateWindow
 x11.mapWindow = C.XMapWindow
 x11.internAtom = C.XInternAtom
 x11.nextEvent = C.XNextEvent
