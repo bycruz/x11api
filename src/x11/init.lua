@@ -53,6 +53,7 @@ local C = ffi.load("libX11.so.6")
 ---@field XSyncInitialize fun(display: x11.ffi.Display, major: ffi.cdata*, minor: ffi.cdata*, error: ffi.cdata*): number
 ---@field XSyncCreateCounter fun(display: x11.ffi.Display, initial_value: x11.ffi.SyncValue): number
 ---@field XSyncDestroyCounter fun(display: x11.ffi.Display, counter: number)
+---@field XSyncQueryCounter fun(display: x11.ffi.Display, counter: number, value: x11.ffi.SyncValue): number
 ---@field XSyncSetCounter fun(display: x11.ffi.Display, counter: number, value: x11.ffi.SyncValue)
 ---@field XSyncMaxValue fun(pv: x11.ffi.SyncValue)
 ---@field XSyncMinValue fun(pv: x11.ffi.SyncValue)
@@ -152,6 +153,18 @@ end
 ---@param counter number
 function x11.syncDestroyCounter(display, counter)
 	XExt.XSyncDestroyCounter(display, counter)
+end
+
+---@param display x11.ffi.Display
+---@param counter number
+---@return x11.ffi.SyncValue?
+function x11.syncQueryCounter(display, counter)
+	local val = x11.SyncValue()
+	local status = XExt.XSyncQueryCounter(display, counter, val)
+	if status == 0 then
+		return nil
+	end
+	return val
 end
 
 ---@param display x11.ffi.Display
