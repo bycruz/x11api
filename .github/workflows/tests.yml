@@ -1,24 +1,21 @@
 name: Tests
 
 on:
-    push:
-        branches: [master]
-    pull_request:
-        branches: [master]
-    workflow_dispatch:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: codebycruz/lpm@master
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lde-org/lde@master
 
-            - name: Install Xvfb
-              run: sudo apt-get update && sudo apt-get install -y xvfb x11-utils
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb x11-utils
 
-            - name: Install dependencies
-              run: lpm install
-
-            - name: Run tests
-              run: xvfb-run lpm test
+      - name: Run tests
+        run: xvfb-run lde test
