@@ -52,6 +52,7 @@ local C = ffi.load("libX11.so.6")
 ---@class x11.FnsXSync
 ---@field XSyncInitialize fun(display: x11.ffi.Display, major: ffi.cdata*, minor: ffi.cdata*, error: ffi.cdata*): number
 ---@field XSyncCreateCounter fun(display: x11.ffi.Display, initial_value: x11.ffi.SyncValue): number
+---@field XSyncDestroyCounter fun(display: x11.ffi.Display, counter: number)
 ---@field XSyncSetCounter fun(display: x11.ffi.Display, counter: number, value: x11.ffi.SyncValue)
 ---@field XSyncMaxValue fun(): x11.ffi.SyncValue
 ---@field XSyncMinValue fun(): x11.ffi.SyncValue
@@ -145,6 +146,12 @@ function x11.syncCreateCounter(display, initial_value)
 	val.lo = initial_value
 	val.hi = (initial_value < 0) and -1 or 0
 	return XExt.XSyncCreateCounter(display, val)
+end
+
+---@param display x11.ffi.Display
+---@param counter number
+function x11.syncDestroyCounter(display, counter)
+	XExt.XSyncDestroyCounter(display, counter)
 end
 
 ---@param display x11.ffi.Display

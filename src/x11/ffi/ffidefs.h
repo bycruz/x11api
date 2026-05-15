@@ -257,6 +257,7 @@ void XSetWindowBackgroundPixmap(XDisplay display, XWindow w, XPixmap background_
 int XSyncInitialize(XDisplay display, int *major_version_return,
                     int *minor_version_return, int *error_base_return);
 XSyncCounter XSyncCreateCounter(XDisplay display, XSyncValue initial_value);
+void XSyncDestroyCounter(XDisplay display, XSyncCounter counter);
 void XSyncSetCounter(XDisplay display, XSyncCounter counter, XSyncValue value);
 XSyncValue XSyncMaxValue(void);
 XSyncValue XSyncMinValue(void);
