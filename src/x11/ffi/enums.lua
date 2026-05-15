@@ -18,7 +18,7 @@ x11.EventType = {
 	ConfigureNotify = 22,
 	DestroyNotify = 17,
 	CreateNotify = 16,
-	GenericEvent = 35,
+	GenericEvent = 35
 }
 
 x11.False = 0
@@ -35,7 +35,7 @@ x11.EventMaskBits = {
 	FocusChange = 0x00200000,
 	StructureNotify = 0x00020000,
 	SubstructureNotify = 0x00080000,
-	SubstructureRedirect = 0x00100000,
+	SubstructureRedirect = 0x00100000
 }
 
 ---@enum x11.ModifierMaskBits
@@ -47,13 +47,13 @@ x11.ModifierMaskBits = {
 	Mod2 = 0x0010, -- NumLock
 	Mod3 = 0x0020,
 	Mod4 = 0x0040, -- Super/Win
-	Mod5 = 0x0080,
+	Mod5 = 0x0080
 }
 
 ---@enum x11.GrabMode
 x11.GrabMode = {
 	Sync = 0,
-	Async = 1,
+	Async = 1
 }
 
 ---@enum x11.GrabStatus
@@ -62,7 +62,116 @@ x11.GrabStatus = {
 	AlreadyGrabbed = 1,
 	InvalidTime = 2,
 	NotViewable = 3,
-	Frozen = 4,
+	Frozen = 4
+}
+
+---@enum x11.GCBits
+x11.GCBits = {
+	Function = 0x00000001,
+	PlaneMask = 0x00000002,
+	Foreground = 0x00000004,
+	Background = 0x00000008,
+	LineWidth = 0x00000010,
+	LineStyle = 0x00000020,
+	CapStyle = 0x00000040,
+	JoinStyle = 0x00000080,
+	FillStyle = 0x00000100,
+	FillRule = 0x00000200,
+	Tile = 0x00000400,
+	Stipple = 0x00000800,
+	TileStipXOrigin = 0x00001000,
+	TileStipYOrigin = 0x00002000,
+	Font = 0x00004000,
+	SubwindowMode = 0x00008000,
+	GraphicsExposures = 0x00010000,
+	ClipXOrigin = 0x00020000,
+	ClipYOrigin = 0x00040000,
+	ClipMask = 0x00080000,
+	DashOffset = 0x00100000,
+	DashList = 0x00200000,
+	ArcMode = 0x00400000
+}
+
+---@enum x11.LineStyle
+x11.LineStyle = {
+	Solid = 0,
+	OnOffDash = 1,
+	DoubleDash = 2
+}
+
+---@enum x11.CapStyle
+x11.CapStyle = {
+	NotLast = 0,
+	Butt = 1,
+	Round = 2,
+	Projecting = 3
+}
+
+---@enum x11.JoinStyle
+x11.JoinStyle = {
+	Miter = 0,
+	Round = 1,
+	Bevel = 2
+}
+
+---@enum x11.FillStyle
+x11.FillStyle = {
+	Solid = 0,
+	Tiled = 1,
+	Stippled = 2,
+	OpaqueStippled = 3
+}
+
+---@enum x11.ArcMode
+x11.ArcMode = {
+	Chord = 0,
+	PieSlice = 1
+}
+
+---@enum x11.GXFunction
+x11.GXFunction = {
+	Clear = 0x0,
+	And = 0x1,
+	AndReverse = 0x2,
+	Copy = 0x3,
+	AndInverted = 0x4,
+	Noop = 0x5,
+	Xor = 0x6,
+	Or = 0x7,
+	Nor = 0x8,
+	Equiv = 0x9,
+	Invert = 0xA,
+	OrReverse = 0xB,
+	CopyInverted = 0xC,
+	OrInverted = 0xD,
+	Nand = 0xE,
+	Set = 0xF
+}
+
+---@enum x11.FillRule
+x11.FillRule = {
+	EvenOdd = 0,
+	Winding = 1
+}
+
+---@enum x11.CoordMode
+x11.CoordMode = {
+	Origin = 0,
+	Previous = 1
+}
+
+---@enum x11.PolygonShape
+x11.PolygonShape = {
+	Complex = 0,
+	Nonconvex = 1,
+	Convex = 2
+}
+
+---@enum x11.ImageFormat
+x11.ImageFormat = {
+	XYBitmap = 0,
+	XYPixmap = 1,
+	ZPixmap = 2
 }
 
 ---@enum x11.Icon
@@ -142,7 +251,7 @@ x11.Icon = {
 	Umbrella = 146,
 	UrAngle = 148,
 	Watch = 150,
-	Xterm = 152,
+	Xterm = 152
 }
 
 return x11
