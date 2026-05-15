@@ -54,8 +54,8 @@ local C = ffi.load("libX11.so.6")
 ---@field XSyncCreateCounter fun(display: x11.ffi.Display, initial_value: x11.ffi.SyncValue): number
 ---@field XSyncDestroyCounter fun(display: x11.ffi.Display, counter: number)
 ---@field XSyncSetCounter fun(display: x11.ffi.Display, counter: number, value: x11.ffi.SyncValue)
----@field XSyncMaxValue fun(): x11.ffi.SyncValue
----@field XSyncMinValue fun(): x11.ffi.SyncValue
+---@field XSyncMaxValue fun(pv: x11.ffi.SyncValue)
+---@field XSyncMinValue fun(pv: x11.ffi.SyncValue)
 local XExt = ffi.load("libXext.so.6")
 
 ---@class x11: x11.Enums
@@ -173,12 +173,16 @@ end
 
 ---@return x11.ffi.SyncValue
 function x11.syncMaxValue()
-	return XExt.XSyncMaxValue()
+	local val = x11.SyncValue()
+	XExt.XSyncMaxValue(val)
+	return val
 end
 
 ---@return x11.ffi.SyncValue
 function x11.syncMinValue()
-	return XExt.XSyncMinValue()
+	local val = x11.SyncValue()
+	XExt.XSyncMinValue(val)
+	return val
 end
 
 ---@param display x11.ffi.Display

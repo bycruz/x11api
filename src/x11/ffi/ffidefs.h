@@ -259,5 +259,5 @@ int XSyncInitialize(XDisplay display, int *major_version_return,
 XSyncCounter XSyncCreateCounter(XDisplay display, XSyncValue initial_value);
 void XSyncDestroyCounter(XDisplay display, XSyncCounter counter);
 void XSyncSetCounter(XDisplay display, XSyncCounter counter, XSyncValue value);
-XSyncValue XSyncMaxValue(void);
-XSyncValue XSyncMinValue(void);
+void XSyncMaxValue(XSyncValue *pv);
+void XSyncMinValue(XSyncValue *pv);
