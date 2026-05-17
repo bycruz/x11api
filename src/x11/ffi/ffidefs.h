@@ -101,8 +101,8 @@ typedef struct {
 } XFontStruct;
 
 typedef struct {
-    long hi;
-    unsigned long lo;
+    int hi;
+    unsigned int lo;
 } XSyncValue;
 
 typedef struct {
