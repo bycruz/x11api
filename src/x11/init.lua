@@ -202,7 +202,6 @@ x11.fillRectangle = C.XFillRectangle
 x11.drawRectangle = C.XDrawRectangle
 x11.drawLine = C.XDrawLine
 x11.drawPoint = C.XDrawPoint
-x11.drawString = C.XDrawString
 x11.fillArc = C.XFillArc
 x11.drawArc = C.XDrawArc
 x11.clearWindow = C.XClearWindow
@@ -239,15 +238,11 @@ end
 
 -- Font functions
 x11.loadFont = C.XLoadFont
-x11.loadQueryFont = C.XLoadQueryFont
 x11.queryFont = C.XQueryFont
 x11.freeFont = C.XFreeFont
 x11.setFont = C.XSetFont
 x11.unloadFont = C.XUnloadFont
-x11.textWidth = C.XTextWidth
 x11.textWidth16 = C.XTextWidth16
-x11.textExtents = C.XTextExtents
-x11.listFonts = C.XListFonts
 x11.freeFontNames = C.XFreeFontNames
 x11.getFontProperty = C.XGetFontProperty
 
@@ -309,11 +304,7 @@ function x11.textExtents(font_struct, text)
 end
 
 -- Color allocation
-x11.allocNamedColor = C.XAllocNamedColor
-x11.parseColor = C.XParseColor
-x11.allocColor = C.XAllocColor
 x11.freeColors = C.XFreeColors
-x11.lookupColor = C.XLookupColor
 
 --- Convenience: allocate a color by name (e.g. "red", "#FF8800").
 --- Returns screen_color and exact_color on success, or nil on failure.
@@ -369,7 +360,6 @@ x11.copyPlane = C.XCopyPlane
 x11.setWindowBackground = C.XSetWindowBackground
 
 -- Image I/O
-x11.createImage = C.XCreateImage
 x11.putImage = C.XPutImage
 x11.getImage = C.XGetImage
 x11.destroyImage = C.XDestroyImage
