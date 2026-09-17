@@ -1,18 +1,23 @@
-name: Tests
+name: Test
 
 on:
   push:
-    branches: [master]
   pull_request:
-    branches: [master]
   workflow_dispatch:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+          - os: ubuntu-22.04-arm
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v4
-      - uses: lde-org/lde@master
 
       - name: Install Xvfb
         run: sudo apt-get update && sudo apt-get install -y xvfb x11-utils
