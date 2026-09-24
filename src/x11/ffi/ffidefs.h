@@ -221,6 +221,47 @@ typedef struct {
   void *data;
 } XGenericEventCookie;
 
+/* Selections (ICCCM). A window that owns a selection is asked for its data with a
+   SelectionRequest carrying the window to put that data on, is told it lost the
+   selection with a SelectionClear, and a window that asked for the data receives the
+   answer as a SelectionNotify once the owner has put the data where it was asked to.
+   The notify travels in XSelectionEvent, which names the requestor where the other
+   two name the owner. */
+typedef struct {
+  int type;
+  unsigned long serial;
+  XBool send_event;
+  XDisplay display;
+  XWindow owner;
+  XWindow requestor;
+  XAtom selection;
+  XAtom target;
+  XAtom property;
+  XTime time;
+} XSelectionRequestEvent;
+
+typedef struct {
+  int type;
+  unsigned long serial;
+  XBool send_event;
+  XDisplay display;
+  XWindow requestor;
+  XAtom selection;
+  XAtom target;
+  XAtom property;
+  XTime time;
+} XSelectionEvent;
+
+typedef struct {
+  int type;
+  unsigned long serial;
+  XBool send_event;
+  XDisplay display;
+  XWindow owner;
+  XAtom selection;
+  XTime time;
+} XSelectionClearEvent;
+
 typedef union {
   int type;
   XAnyEvent xany;
@@ -231,6 +272,9 @@ typedef union {
   XMotionEvent xmotion;
   XButtonEvent xbutton;
   XGenericEventCookie xcookie;
+  XSelectionRequestEvent xselectionrequest;
+  XSelectionEvent xselection;
+  XSelectionClearEvent xselectionclear;
   long pad[24];
 } XEvent;
 
@@ -301,6 +345,38 @@ void XFlush(XDisplay display);
 void XChangeProperty(XDisplay display, XWindow w, XAtom property, XAtom type,
                      int format, int mode, const unsigned char *data,
                      int nelements);
+
+/* A selection is an atom a window claims to own -- clipboard, primary, or whatever
+   else the clients of a screen agree on -- and the atom numbers are not fixed, so
+   callers intern the names they mean. An owner of None means nobody holds it. */
+XWindow XGetSelectionOwner(XDisplay display, XAtom selection);
+int XSetSelectionOwner(XDisplay display, XAtom selection, XWindow owner,
+                       XTime time);
+XStatus XConvertSelection(XDisplay display, XAtom selection, XAtom target,
+                          XAtom property, XWindow requestor, XTime time);
+
+/* XGetWindowProperty hands back a buffer the caller owns and must XFree. The offset
+   and the length are counted in 32-bit words rather than in items, so a property of
+   another format still moves in whole words; the server also answers one request with
+   only as much as fits, and bytes_after says how much of the property did not come
+   back this time. A property that is not there at all answers with actual_type_return
+   set to None and no buffer. */
+int XGetWindowProperty(XDisplay display, XWindow w, XAtom property,
+                       long long_offset, long long_length, XBool delete,
+                       XAtom req_type, XAtom *actual_type_return,
+                       int *actual_format_return,
+                       unsigned long *nitems_return,
+                       unsigned long *bytes_after_return,
+                       unsigned char **prop_return);
+int XDeleteProperty(XDisplay display, XWindow w, XAtom property);
+
+/* Coordinates are relative to a window, and a window is not always where it asked to
+   be, so the way to know where a point inside one lands on another -- the root of the
+   screen, or a window a drag is over -- is to ask the server to do the walk; a
+   destination that cannot be reached from the source makes it fail. */
+int XTranslateCoordinates(XDisplay display, XWindow src_w, XWindow dest_w,
+                          int src_x, int src_y, int *dest_x_return,
+                          int *dest_y_return, XWindow *child_return);
 
 XStatus XSendEvent(XDisplay display, XWindow w, XBool propagate,
                    long event_mask, XEvent *event_send);

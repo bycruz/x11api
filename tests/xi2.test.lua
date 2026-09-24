@@ -1,4 +1,4 @@
-local test = require("lpm-test")
+local test = require("lde-test")
 
 local x11 = require("x11api")
 local xi2 = require("x11api.xi2")

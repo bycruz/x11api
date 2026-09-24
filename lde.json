@@ -2,5 +2,5 @@
 	"name": "x11api",
 	"description": "X11 api bindings for LuaJIT",
 	"authors": ["David Cruz <david@bycruz.dev>"],
-	"version": "0.1.1"
+	"version": "0.1.2"
 }

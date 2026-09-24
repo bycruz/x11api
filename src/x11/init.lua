@@ -24,6 +24,12 @@ ffi.cdef([[#embed "x11/ffi/ffidefs.h"]])
 ---@field XFreeCursor fun(display: x11.ffi.Display, cursor: number)
 ---@field XFlush fun(display: x11.ffi.Display)
 ---@field XChangeProperty fun(display: x11.ffi.Display, w: number, property: number, type: number, format: number, mode: number, data: string|ffi.cdata*, nelements: number)
+---@field XGetSelectionOwner fun(display: x11.ffi.Display, selection: number): number
+---@field XSetSelectionOwner fun(display: x11.ffi.Display, selection: number, owner: number, time: number): number
+---@field XConvertSelection fun(display: x11.ffi.Display, selection: number, target: number, property: number, requestor: number, time: number): number
+---@field XGetWindowProperty fun(display: x11.ffi.Display, w: number, property: number, long_offset: number, long_length: number, delete: number, req_type: number, actual_type_return: ffi.cdata*, actual_format_return: ffi.cdata*, nitems_return: ffi.cdata*, bytes_after_return: ffi.cdata*, prop_return: ffi.cdata*): number
+---@field XDeleteProperty fun(display: x11.ffi.Display, w: number, property: number): number
+---@field XTranslateCoordinates fun(display: x11.ffi.Display, src_w: number, dest_w: number, src_x: number, src_y: number, dest_x_return: ffi.cdata*, dest_y_return: ffi.cdata*, child_return: ffi.cdata*): number
 ---@field XSendEvent fun(display: x11.ffi.Display, w: number, propagate: number, event_mask: number, event_send: x11.ffi.Event): number
 ---@field XSync fun(display: x11.ffi.Display, discard: number)
 ---@field XKeycodeToKeysym fun(display: x11.ffi.Display, keycode: number, index: number): number
@@ -131,6 +137,9 @@ local XExt = ffi.load("libXext.so.6")
 ---@field GC fun(): x11.ffi.GC
 ---@field GCArray fun(count: number): x11.ffi.GC[]
 ---@field KeySym fun(): number[]
+---@field SelectionRequestEvent fun(): x11.ffi.SelectionRequestEvent
+---@field SelectionEvent fun(): x11.ffi.SelectionEvent
+---@field SelectionClearEvent fun(): x11.ffi.SelectionClearEvent
 local x11 = {}
 
 local enums = require("x11api.x11.ffi.enums")
@@ -156,6 +165,9 @@ defType("Color")
 defType("SetWindowAttributes")
 defType("SyncValue")
 defType("GC")
+defType("SelectionRequestEvent")
+defType("SelectionEvent")
+defType("SelectionClearEvent")
 
 x11.KeySym = ffi.typeof("XKeySym[1]")
 
@@ -562,6 +574,222 @@ function x11.changeProperty(display, window, property, ty, format, mode, data, n
 	local typeAtom = C.XInternAtom(display, ty, 0)
 
 	C.XChangeProperty(display, window, propAtom, typeAtom, format, mode, data, nelements)
+end
+
+-- Selections are named by atoms the server does not fix in advance, so the names have
+-- to be interned before anything can be owned or asked for.
+x11.setSelectionOwner = C.XSetSelectionOwner
+x11.getSelectionOwner = C.XGetSelectionOwner
+x11.convertSelection = C.XConvertSelection
+x11.deleteProperty = C.XDeleteProperty
+
+---@param display x11.ffi.Display
+---@param names string[]
+---@return number[]
+function x11.internAtoms(display, names)
+	local atoms = {}
+	for i = 1, #names do
+		atoms[i] = C.XInternAtom(display, names[i], 0)
+	end
+
+	return atoms
+end
+
+-- A reader of a property rarely knows which type its owner settled on -- a clipboard
+-- may answer with UTF8_STRING, STRING or something private -- so the type asked for is
+-- AnyPropertyType and what came back is inspected instead. The offset and the length
+-- XGetWindowProperty counts in are 32-bit words rather than items, so asking for far
+-- more words than a property can hold brings the whole thing back in one answer; a
+-- property too large for one answer still arrives whole, because the words already read
+-- advance the offset of the next round.
+local anyPropertyType = 0
+local propertyWordsWanted = 0x7FFFFFFF
+
+--- Reads one round of a property, copying nothing: the buffer Xlib allocated comes back
+--- for the caller to read and XFree. A format of 0 means the window has no such property
+--- (which is also what a delete read sees once it has taken the property away).
+---@param display x11.ffi.Display
+---@param window number
+---@param property number
+---@param offset number
+---@param delete boolean
+---@return number format, number actualType, ffi.cdata*? data, number nitems, number bytesAfter
+local function readPropertyChunk(display, window, property, offset, delete)
+	local actualType = ffi.new("XAtom[1]")
+	local actualFormat = ffi.new("int[1]")
+	local nitems = ffi.new("unsigned long[1]")
+	local bytesAfter = ffi.new("unsigned long[1]")
+	local data = ffi.new("unsigned char *[1]")
+
+	local status = C.XGetWindowProperty(display, window, property, offset, propertyWordsWanted,
+		delete and x11.True or x11.False, anyPropertyType,
+		actualType, actualFormat, nitems, bytesAfter, data)
+
+	-- A failed request leaves nothing behind, and a property that was never set answers
+	-- with the None type and no buffer at all.
+	if status == 0 and actualType[0] ~= 0 then
+		return actualFormat[0], actualType[0], data[0], tonumber(nitems[0]), tonumber(bytesAfter[0])
+	end
+
+	return 0, 0, nil, 0, 0
+end
+
+--- Reads an 8-bit property -- a string a clipboard or a window manager left behind --
+--- and returns its bytes as a Lua string, or nil when there is no such property or it is
+--- stored in another format.
+---
+--- The type its owner stored it as comes back with it, because what a property holds is
+--- not always what was asked for: a clipboard may answer a question about UTF8_STRING
+--- with Latin-1 STRING bytes, and only the type says which of the two it is.
+---@param display x11.ffi.Display
+---@param window number
+---@param property number
+---@param delete boolean? # Take the property away as it is read
+---@return string? data
+---@return number actualType # The atom it was stored as, 0 when there was nothing to read
+function x11.getProperty(display, window, property, delete)
+	local chunks = {}
+	local offset = 0
+	local storedAs
+
+	while true do
+		local format, actualType, data, nitems, bytesAfter =
+			readPropertyChunk(display, window, property, offset, delete == true)
+
+		if data ~= nil then
+			if format == 8 then
+				chunks[#chunks + 1] = ffi.string(data, nitems)
+			end
+			C.XFree(data)
+		end
+
+		if format ~= 8 then
+			-- Either the property is not there, or it holds items that are not one byte
+			-- wide; a delete read can also be looking at rounds after the property was
+			-- taken away, which is not a reason to drop what already came back.
+			if #chunks > 0 then return table.concat(chunks), storedAs end
+			return nil, 0
+		end
+
+		storedAs = storedAs or actualType
+
+		if bytesAfter == 0 then
+			return table.concat(chunks), storedAs
+		end
+
+		-- The offset counts whole 32-bit words and the server answers in whole words, so
+		-- the bytes read advance it by that many; the floor keeps a short answer from
+		-- leaving the loop where it stands.
+		offset = offset + math.max(1, math.floor(nitems / 4))
+	end
+end
+
+--- Reads a property stored in 32-bit format -- a list of atoms such as the targets a
+--- selection can be asked for -- and returns its values as a Lua array, or nil when
+--- there is no such property or it is stored in another format. The values are the C
+--- longs Xlib unpacks the property into, so a value with its top bit set arrives
+--- negative, as it does for anyone else reading a 32-bit property through Xlib.
+---@param display x11.ffi.Display
+---@param window number
+---@param property number
+---@param delete boolean? # Take the property away as it is read
+---@return number[]?
+function x11.getAtomProperty(display, window, property, delete)
+	local values = {}
+	local offset = 0
+
+	while true do
+		local format, _, data, nitems, bytesAfter =
+			readPropertyChunk(display, window, property, offset, delete == true)
+
+		if data ~= nil then
+			if format == 32 then
+				-- Xlib unpacks a 32-bit property into longs, which is what the buffer
+				-- holds on this side of the interface.
+				local longs = ffi.cast("long *", data)
+				for i = 0, nitems - 1 do
+					values[#values + 1] = tonumber(longs[i])
+				end
+			end
+			C.XFree(data)
+		end
+
+		if format ~= 32 then
+			if #values > 0 then return values end
+			return nil
+		end
+
+		if bytesAfter == 0 then
+			return values
+		end
+
+		offset = offset + math.max(1, nitems)
+	end
+end
+
+--- Stores a list of values in a property as a 32-bit list, replacing whatever was there.
+--- Exists so callers do not have to build the C array and cast it themselves.
+---@param display x11.ffi.Display
+---@param window number
+---@param property number
+---@param ty number # Type atom the values are stored as
+---@param values number[]
+function x11.setAtomProperty(display, window, property, ty, values)
+	local count = #values
+
+	---@type x11.ffi.AtomArray
+	local data = ffi.new("long[?]", count)
+	for i = 1, count do
+		data[i - 1] = values[i]
+	end
+
+	C.XChangeProperty(display, window, property, ty, 32, x11.PropMode.Replace,
+		ffi.cast("const unsigned char *", data), count)
+end
+
+--- Writes a property from atoms a caller already holds, which is what answering a
+--- selection request needs: the property to write is the one the peer named, and a name is
+--- not always a string this side can intern again. `changeProperty` is the same call for
+--- callers who have names instead of atoms.
+---@param display x11.ffi.Display
+---@param window number
+---@param property number # Atom to write to
+---@param ty number # Type atom the value is stored as
+---@param format number # 8, 16 or 32 bits an item
+---@param mode number # x11.PropMode
+---@param data string|ffi.cdata* # The items, as a Lua string or a pointer to them
+---@param nelements number
+function x11.setProperty(display, window, property, ty, format, mode, data, nelements)
+	-- A pointer to anything is a pointer to bytes as far as the property is concerned, and
+	-- which of the two it is is what the caller passed: only a string goes through as it is.
+	if type(data) ~= "string" then
+		data = ffi.cast("const unsigned char *", data)
+	end
+
+	C.XChangeProperty(display, window, property, ty, format, mode, data, nelements)
+end
+
+--- Translates a point from one window's coordinates to another's -- from a drag position
+--- on the screen into the window under it, or from a window back to the root -- and
+--- returns the translated x and y together with the child of the destination that holds
+--- the point, or the input coordinates and no child when the translation fails.
+---@param display x11.ffi.Display
+---@param src number
+---@param dest number
+---@param x number
+---@param y number
+---@return number x, number y, number child
+function x11.translateCoordinates(display, src, dest, x, y)
+	local destX = ffi.new("int[1]")
+	local destY = ffi.new("int[1]")
+	local child = ffi.new("XWindow[1]")
+
+	local status = C.XTranslateCoordinates(display, src, dest, x, y, destX, destY, child)
+	if status == 0 then
+		return x, y, 0
+	end
+
+	return destX[0], destY[0], child[0]
 end
 
 return x11

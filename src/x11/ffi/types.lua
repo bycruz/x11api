@@ -17,6 +17,41 @@
 ---@field xbutton { x: number, y: number, button: number, state: number }
 ---@field xkey { window: number, root: number, time: number, x: number, y: number, x_root: number, y_root: number, state: number, keycode: number, same_screen: number }
 ---@field xcookie x11.ffi.GenericEventCookie
+---@field xselectionrequest { owner: number, requestor: number, selection: number, target: number, property: number, time: number }
+---@field xselection { requestor: number, selection: number, target: number, property: number, time: number }
+---@field xselectionclear { owner: number, selection: number, time: number }
+
+---@class x11.ffi.SelectionRequestEvent: ffi.cdata*
+---@field type number
+---@field serial number
+---@field send_event number
+---@field display x11.ffi.Display
+---@field owner number
+---@field requestor number
+---@field selection number
+---@field target number
+---@field property number
+---@field time number
+
+---@class x11.ffi.SelectionEvent: ffi.cdata*
+---@field type number
+---@field serial number
+---@field send_event number
+---@field display x11.ffi.Display
+---@field requestor number
+---@field selection number
+---@field target number
+---@field property number
+---@field time number
+
+---@class x11.ffi.SelectionClearEvent: ffi.cdata*
+---@field type number
+---@field serial number
+---@field send_event number
+---@field display x11.ffi.Display
+---@field owner number
+---@field selection number
+---@field time number
 
 ---@class x11.ffi.Color: ffi.cdata*
 ---@field pixel number
@@ -49,6 +84,11 @@
 ---@field evtype number
 ---@field cookie number
 ---@field data ffi.cdata*
+
+--- A C array of atoms, which is also what a 32-bit property holds: Xlib unpacks such
+--- a property into longs and passes it back as bytes a caller reads through one.
+---@class x11.ffi.AtomArray: ffi.cdata*
+---@field [integer] number
 
 ---@class x11.ffi.GC: ffi.cdata*
 

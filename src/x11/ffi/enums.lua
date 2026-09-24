@@ -18,8 +18,44 @@ x11.EventType = {
 	ConfigureNotify = 22,
 	DestroyNotify = 17,
 	CreateNotify = 16,
+	SelectionClear = 29,
+	SelectionRequest = 30,
+	SelectionNotify = 31,
 	GenericEvent = 35
 }
+
+--- How a property gets written: what XChangeProperty does to the value already there.
+---@enum x11.PropMode
+x11.PropMode = {
+	Replace = 0,
+	Prepend = 1,
+	Append = 2
+}
+
+--- The atoms every server has from the start (X11/Xatom.h). Selections and properties are
+--- named by atoms, and a few of those names are fixed by the protocol rather than left to
+--- what the clients of a screen agree on -- the type a list of atoms is stored as, and the
+--- type the older of the two string encodings is stored as.
+---@enum x11.XA
+x11.XA = {
+	PRIMARY = 1,
+	SECONDARY = 2,
+	ARC = 3,
+	ATOM = 4,
+	BITMAP = 5,
+	CARDINAL = 6,
+	COLORMAP = 7,
+	CURSOR = 8,
+	INTEGER = 19,
+	STRING = 31,
+	VISUALID = 32,
+	WINDOW = 33
+}
+
+--- The time a request is stamped with when it is not one an event brought in, which the
+--- server reads as "now". XSetSelectionOwner and XConvertSelection take a time, and a
+--- program that has no event to point at has no better one to give.
+x11.CurrentTime = 0
 
 ---@enum x11.WindowClass
 x11.WindowClass = {
