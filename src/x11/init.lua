@@ -172,6 +172,13 @@ x11.peekEvent = C.XPeekEvent
 x11.defaultScreen = C.XDefaultScreen
 x11.defaultColormap = C.XDefaultColormap
 x11.pending = C.XPending
+
+---@param display XDisplay
+---@return number
+function x11.connectionNumber(display)
+	return ffi.cast("XConnection *", display).fd
+end
+
 x11.selectInput = C.XSelectInput
 x11.createFontCursor = C.XCreateFontCursor
 x11.defineCursor = C.XDefineCursor

@@ -282,6 +282,14 @@ void XPeekEvent(XDisplay display, XEvent *event_return);
 int XDefaultScreen(XDisplay display);
 XColormap XDefaultColormap(XDisplay display, int screen);
 int XPending(XDisplay display);
+
+/* The socket a display talks to, which is what the ConnectionNumber macro reads and
+   what a program needs to wait for events with a time on it: Xlib's own wait has none,
+   and a screen with something to do on its own -- a caret that blinks -- is a program
+   that has to be woken for it. What the macro reads is this far into the display
+   structure: two pointers of the library's own come first, and the socket after them. */
+typedef struct { void *ext_data; void *free_funcs; int fd; } XConnection;
+int XConnectionNumber(XDisplay display);
 void XSelectInput(XDisplay display, XWindow w, long event_mask);
 XStatus XGetWindowAttributes(XDisplay display, XWindow w,
                              XWindowAttributes *window_attributes_return);
